@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+############################################################################
+################ colors ####################################################
+restore="\033[00m"
+underline="\033[4m"
+############################################################################
+################ init ######################################################
+######### get your own API_KEY at https://www.covalenthq.com/ ##############
+export COVALENTHQ_KEY="API_KEY" 
+export WALLETS="$(sed wallets.txt -e 's/ /\n/g' | sed -e '/^$/d')"
+export SUPPORTED_CHAINS="$(curl -s -X GET https://api.covalenthq.com/v1/chains/? -H 'Content-Type: application/json' -u "${COVALENTHQ_KEY}": \# |\
+                            jq '.data.items[].name')" 2>/dev/null
+############################################################################
+################ get transactions info #####################################
+get_txs(){
+    link="https://api.covalenthq.com/v1/${2}/address/${1}/transactions_summary/?"
+    curl -s -X GET "${link}" -H 'Content-Type: applicatio1/json' -u "${COVALENTHQ_KEY}": \# | jq '.data.items[].total_count' | sed 's/"//g'
+} 2>/dev/null
+############################################################################
+################ run query per wallet ######################################
+common(){
+    for wallet in $WALLETS;do
+        echo -n "${wallet} "
+        get_txs "${wallet}" "${1}"
+    done
+}
+############################################################################
+################ check input ###############################################
+if $(echo "${SUPPORTED_CHAINS}" | grep -qw "${1}-mainnet"); then
+    common "${1}-mainnet"
+else
+    echo "${underline}Supported chains:${restore}"
+    echo "${SUPPORTED_CHAINS}" | grep "mainnet" | sed -e 's/"//g' -e 's/-mainnet//g'| sort -u
+fi
