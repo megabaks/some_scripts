@@ -7,7 +7,7 @@ underline="\033[4m"
 ################ init ######################################################
 ######### get your own API_KEY at https://www.covalenthq.com/ ##############
 export COVALENTHQ_KEY="API_KEY" 
-export WALLETS="$(sed wallets.txt -e 's/ /\n/g' | sed -e '/^$/d')"
+export WALLETS="$(sed wallets.txt -e 's/ /\n/g' | sed -e '/^$/d' | tr '[:upper:]' '[:lower:]')"
 export SUPPORTED_CHAINS="$(curl -s -X GET https://api.covalenthq.com/v1/chains/? -H 'Content-Type: application/json' -u "${COVALENTHQ_KEY}": \# |\
                             jq '.data.items[].name')" 2>/dev/null
 ############################################################################
