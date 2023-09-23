@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 dex_path=dexscreener_staff
 mkdir -p "${dex_path}"
 rm -f dexscreener.xls
