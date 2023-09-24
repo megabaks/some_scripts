@@ -9,7 +9,8 @@ chains="mainnet optimism arbitrum matic base bsc"
 min_liq=200000 #in USD
 max_liq=2000000 #in USD
 min_age=604800 #in secs
-min_vol=
+min_vol=100000
+frame=6 #hours 1, 6, 24
 
 echo "Chain\t \t DEX\t \t Pair_contract\t\t \t \t\t Token/Token \t Token/Token"
 for chain in ${chains}; do
@@ -26,13 +27,16 @@ for chain in ${chains}; do
             pair_liq="$(echo "${pair_sources}" | jq '.liquidity.usd | select (.!=null)' | cut -d \. -f1)"
             [ -z "${pair_liq}" ] && pair_liq=0
             if [ "${pair_liq}" -ge "${min_liq}" ] && [ "${pair_liq}" -le "${max_liq}" ]; then
-                base_token="$(echo "${pair_sources}" | jq -r '.baseToken.address')"
-                base_token_symbol="$(echo "${pair_sources}" | jq -r '.baseToken.symbol')"
-                quote_token="$(echo "${pair_sources}" | jq -r '.quoteToken.address')"
-                quote_token_symbol="$(echo "${pair_sources}" | jq -r '.quoteToken.symbol')"
-                dex="$(echo "${pair_sources}" | jq -r '.dexId')"
-                echo "${chain} \t ${dex} \t ${pair} \t ${base_token_symbol}/${quote_token_symbol} \t ${base_token}/${quote_token}"
-                output="${output}${chain}\t${dex}\t${pair}\t${base_token_symbol}/${quote_token_symbol}\t${base_token}\t${quote_token}\n"
+                vol="$(echo "${pair_sources}" | jq -r ".volume.h${frame} | select (.!=null)" | cut -d \. -f1)"
+                if [ "${vol}" -ge "${min_vol}" ]; then
+                    base_token="$(echo "${pair_sources}" | jq -r '.baseToken.address')"
+                    base_token_symbol="$(echo "${pair_sources}" | jq -r '.baseToken.symbol')"
+                    quote_token="$(echo "${pair_sources}" | jq -r '.quoteToken.address')"
+                    quote_token_symbol="$(echo "${pair_sources}" | jq -r '.quoteToken.symbol')"
+                    dex="$(echo "${pair_sources}" | jq -r '.dexId')"
+                    echo "${chain} \t ${dex} \t ${pair} \t ${base_token_symbol}/${quote_token_symbol} \t ${base_token}/${quote_token}"
+                    output="${output}${chain}\t${dex}\t${pair}\t${base_token_symbol}/${quote_token_symbol}\t${base_token}\t${quote_token}\n"
+                fi
             fi
         fi
     done
